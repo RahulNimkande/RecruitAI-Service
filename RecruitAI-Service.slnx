@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Project Path="RecruitAI.Api/RecruitAI.Api.csproj" />
   <Project Path="RecruitAI.Application/RecruitAI.Application.csproj" Id="052c92b9-283f-4458-a39c-3442f3da4804" />
   <Project Path="RecruitAI.Domain/RecruitAI.Domain.csproj" />
