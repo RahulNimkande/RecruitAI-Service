@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RecruitAI.Application.Services;
+using Microsoft.Extensions.Options;
 using RecruitAI.Application.DTOs;
+using RecruitAI.Application.Services;
 
 namespace RecruitAI.Api.Controllers;
 
@@ -10,11 +11,13 @@ public class CandidateController : ControllerBase
 {
     private readonly CandidateService _candidateService;
     private readonly ILogger<CandidateController> _logger;
+    private readonly StorageSettings _storageSettings;
 
-    public CandidateController(CandidateService candidateService, ILogger<CandidateController> logger)
+    public CandidateController(CandidateService candidateService, ILogger<CandidateController> logger, IOptions<StorageSettings> storageOptions)
     {
         _candidateService = candidateService;
         _logger = logger;
+        _storageSettings = storageOptions.Value;
     }
 
     [HttpPost("profile")]
@@ -26,7 +29,7 @@ public class CandidateController : ControllerBase
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001"); // Placeholder
 
             var candidate = await _candidateService.UpdateCandidateProfileAsync(userId, request.FullName, request.Phone);
-            
+
             var response = new CandidateResponse
             {
                 Id = candidate.Id,
@@ -63,7 +66,7 @@ public class CandidateController : ControllerBase
             var userId = Guid.Parse("00000000-0000-0000-0000-000000000001"); // Placeholder
 
             // Create uploads directory if not exists
-            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), _storageSettings.UploadPath);
             if (!Directory.Exists(uploadsDir))
                 Directory.CreateDirectory(uploadsDir);
 

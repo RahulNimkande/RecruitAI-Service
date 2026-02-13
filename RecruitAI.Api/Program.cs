@@ -17,6 +17,10 @@ builder.Services.AddDbContext<RecruitAIDbContext>(options =>
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<CandidateService>();
 
+builder.Services.Configure<StorageSettings>(
+    builder.Configuration.GetSection("StorageSettings"));
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
