@@ -9,10 +9,11 @@ namespace RecruitAI.Application.Services;
 public class UserService
 {
     private readonly RecruitAIDbContext _context;
-
-    public UserService(RecruitAIDbContext context)
+    private readonly JwtTokenService _jwtTokenService;
+    public UserService(RecruitAIDbContext context, JwtTokenService jwtTokenService)
     {
         _context = context;
+        _jwtTokenService = jwtTokenService;
     }
 
     public async Task<SignupResponse> SignupAsync(SignupRequest request)
@@ -79,8 +80,7 @@ public class UserService
         if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
             throw new InvalidOperationException("Invalid email or password");
 
-        // TODO: Generate JWT token
-        var token = "temporary-token";
+        var token = _jwtTokenService.GenerateToken(user.Id, user.Role.ToString());
 
         return new LoginResponse
         {
@@ -93,14 +93,12 @@ public class UserService
 
     private string HashPassword(string password)
     {
-        using var sha256 = SHA256.Create();
-        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(hashedBytes);
+        return BCrypt.Net.BCrypt.HashPassword(password);
     }
 
     private bool VerifyPassword(string password, string hash)
     {
-        var hashOfInput = HashPassword(password);
-        return hashOfInput == hash;
+        return BCrypt.Net.BCrypt.Verify(password, hash);
     }
+
 }

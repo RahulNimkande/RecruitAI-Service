@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using RecruitAI.Application.DTOs;
 using RecruitAI.Application.Services;
+using System.Security.Claims;
 
 namespace RecruitAI.Api.Controllers;
 
+[Authorize ]
 [ApiController]
 [Route("api/candidate")]
 public class CandidateController : ControllerBase
@@ -26,7 +29,7 @@ public class CandidateController : ControllerBase
         try
         {
             // TODO: Get UserId from authenticated user
-            var userId = Guid.Parse("00000000-0000-0000-0000-000000000001"); // Placeholder
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value); // Placeholder
 
             var candidate = await _candidateService.UpdateCandidateProfileAsync(userId, request.FullName, request.Phone);
 
