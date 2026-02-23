@@ -8,5 +8,4 @@ public class Recruiter
 
     public User User { get; set; }
 
-    public string CompanyName { get; set; }
 }

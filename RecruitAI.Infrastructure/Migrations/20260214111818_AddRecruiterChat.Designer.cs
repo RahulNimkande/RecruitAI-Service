@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RecruitAI.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using RecruitAI.Infrastructure.Persistence;
 namespace RecruitAI.Infrastructure.Migrations
 {
     [DbContext(typeof(RecruitAIDbContext))]
-    partial class RecruitAIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260214111818_AddRecruiterChat")]
+    partial class AddRecruiterChat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,6 +139,10 @@ namespace RecruitAI.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");

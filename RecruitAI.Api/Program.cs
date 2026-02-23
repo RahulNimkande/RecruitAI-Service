@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using RecruitAI.Application.Interfaces;
 using RecruitAI.Application.Services;
 using RecruitAI.Infrastructure.Persistence;
 using System.Text;
@@ -35,6 +36,7 @@ builder.Services.AddDbContext<RecruitAIDbContext>(options =>
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<CandidateService>();
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<IRecruiterChatService, RecruiterChatService>();
 
 builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("StorageSettings"));
 

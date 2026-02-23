@@ -13,6 +13,8 @@ public class RecruitAIDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Candidate> Candidates { get; set; }
     public DbSet<Recruiter> Recruiters { get; set; }
+    public DbSet<RecruiterChatSession> RecruiterChatSessions { get; set; }
+    public DbSet<RecruiterChatMessage> RecruiterChatMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,5 +33,10 @@ public class RecruitAIDbContext : DbContext
             .WithOne()
             .HasForeignKey<Recruiter>(r => r.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RecruiterChatMessage>()
+            .HasOne(m => m.Session)
+            .WithMany(s => s.Messages)
+            .HasForeignKey(m => m.SessionId);
     }
 }
