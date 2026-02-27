@@ -1,17 +1,21 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using RecruitAI.Api.Extensions;
 using RecruitAI.Application.DTOs;
 using RecruitAI.Application.Services;
-using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace RecruitAI.Api.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Candidate")]
 [ApiController]
 [Route("api/candidate")]
 public class CandidateController : ControllerBase
 {
+    private const long MaxResumeSizeBytes = 5 * 1024 * 1024;
+    private static readonly string[] AllowedExtensions = [".pdf", ".doc", ".docx"];
+
     private readonly CandidateService _candidateService;
     private readonly ILogger<CandidateController> _logger;
     private readonly StorageSettings _storageSettings;
@@ -28,8 +32,7 @@ public class CandidateController : ControllerBase
     {
         try
         {
-            var userId = Guid.Parse(input: User.FindFirst(ClaimTypes.NameIdentifier)?.Value); // Placeholder
-
+            var userId = User.GetUserId();
             var candidate = await _candidateService.UpdateCandidateProfileAsync(userId, request.FullName, request.Phone);
 
             var response = new CandidateResponse
@@ -44,6 +47,10 @@ public class CandidateController : ControllerBase
             };
 
             return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -64,26 +71,30 @@ public class CandidateController : ControllerBase
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "File is empty" });
 
-            var userId = Guid.Parse(input: User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (file.Length > MaxResumeSizeBytes)
+                return BadRequest(new { message = "File exceeds 5MB limit" });
 
-            // Create uploads directory if not exists
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedExtensions.Contains(fileExtension))
+                return BadRequest(new { message = "Unsupported file type. Allowed types: .pdf, .doc, .docx" });
+
+            var userId = User.GetUserId();
             var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), _storageSettings.UploadPath);
             if (!Directory.Exists(uploadsDir))
                 Directory.CreateDirectory(uploadsDir);
 
-            // Save file
-            var fileName = $"{userId}_{DateTime.UtcNow.Ticks}_{file.FileName}";
+            var originalName = Path.GetFileNameWithoutExtension(file.FileName);
+            var safeName = Regex.Replace(originalName, "[^a-zA-Z0-9_-]", "_");
+            var fileName = $"{userId}_{DateTime.UtcNow.Ticks}_{safeName}{fileExtension}";
             var filePath = Path.Combine(uploadsDir, fileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            await using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
             // TODO: Extract text from resume file (PDF/DOC parsing)
-            var resumeText = ""; // Placeholder for extracted text
-
-            // Store resume URL and text
+            var resumeText = string.Empty;
             var candidate = await _candidateService.UploadResumeAsync(userId, filePath, resumeText);
 
             var response = new CandidateResponse
@@ -98,6 +109,10 @@ public class CandidateController : ControllerBase
             };
 
             return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -115,8 +130,7 @@ public class CandidateController : ControllerBase
     {
         try
         {
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
+            var userId = User.GetUserId();
             var candidate = await _candidateService.GetCandidateByUserIdAsync(userId);
 
             var response = new CandidateResponse
@@ -131,6 +145,10 @@ public class CandidateController : ControllerBase
             };
 
             return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using RecruitAI.Domain.Entities;
 using RecruitAI.Infrastructure.Persistence;
 
@@ -14,7 +15,7 @@ public class CandidateService
 
     public async Task<Candidate> UpdateCandidateProfileAsync(Guid userId, string fullName, string phone)
     {
-        var candidate = _context.Candidates.FirstOrDefault(c => c.UserId == userId);
+        var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userId);
         if (candidate == null)
             throw new InvalidOperationException("Candidate profile not found");
 
@@ -29,7 +30,7 @@ public class CandidateService
 
     public async Task<Candidate> UploadResumeAsync(Guid userId, string resumeUrl, string resumeText)
     {
-        var candidate = _context.Candidates.FirstOrDefault(c => c.UserId == userId);
+        var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userId);
         if (candidate == null)
             throw new InvalidOperationException("Candidate profile not found");
 
@@ -44,7 +45,7 @@ public class CandidateService
 
     public async Task<Candidate> UpdateProfileJsonAsync(Guid userId, string profileJson)
     {
-        var candidate = _context.Candidates.FirstOrDefault(c => c.UserId == userId);
+        var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userId);
         if (candidate == null)
             throw new InvalidOperationException("Candidate profile not found");
 
@@ -58,7 +59,7 @@ public class CandidateService
 
     public async Task<Candidate> GetCandidateByUserIdAsync(Guid userId)
     {
-        var candidate = _context.Candidates.FirstOrDefault(c => c.UserId == userId);
+        var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.UserId == userId);
         if (candidate == null)
             throw new InvalidOperationException("Candidate profile not found");
 

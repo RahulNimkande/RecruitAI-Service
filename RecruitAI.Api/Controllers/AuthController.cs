@@ -41,6 +41,10 @@ public class AuthController : ControllerBase
             var response = await _userService.LoginAsync(request);
             return Ok(response);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
         catch (Exception ex)
         {
             return StatusCode(500, new { message = "An error occurred during login", error = ex.Message });
