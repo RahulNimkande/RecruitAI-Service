@@ -1,14 +1,11 @@
-﻿using RecruitAI.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using RecruitAI.Domain.Entities;
 
 namespace RecruitAI.Application.Interfaces
 {
     public interface IRecruiterChatService
     {
-        Task<Guid> CreateSessionAsync(Guid recruiterId);
-        Task SendMessageAsync(Guid sessionId, string content);
-        Task<List<RecruiterChatMessage>> GetMessagesAsync(Guid sessionId);
+        Task<Guid> CreateSessionAsync(Guid recruiterUserId);
+        Task SendMessageAsync(Guid recruiterUserId, Guid sessionId, string content);
+        Task<List<RecruiterChatMessage>> GetMessagesAsync(Guid recruiterUserId, Guid sessionId);
     }
 }
