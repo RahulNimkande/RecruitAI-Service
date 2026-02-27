@@ -1,10 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using RecruitAI.Application.Interfaces;
 using RecruitAI.Domain.Entities;
 using RecruitAI.Infrastructure.Persistence;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RecruitAI.Application.Services
 {
@@ -16,12 +13,12 @@ namespace RecruitAI.Application.Services
             _context = context;
         }
 
-        public async Task<Guid> CreateSessionAsync(Guid userId)
+        public async Task<Guid> CreateSessionAsync(Guid recruiterUserId)
         {
-            var recruiter = await _context.Recruiters.FirstOrDefaultAsync(r => r.UserId == userId);
+            var recruiter = await _context.Recruiters.FirstOrDefaultAsync(r => r.UserId == recruiterUserId);
 
             if (recruiter == null)
-                throw new Exception("Recruiter profile not found");
+                throw new InvalidOperationException("Recruiter profile not found");
 
             var session = new RecruiterChatSession
             {
@@ -34,8 +31,18 @@ namespace RecruitAI.Application.Services
             return session.Id;
         }
 
-        public async Task SendMessageAsync(Guid sessionId, string content)
+        public async Task SendMessageAsync(Guid recruiterUserId, Guid sessionId, string content)
         {
+            var session = await _context.RecruiterChatSessions
+                .Include(s => s.Recruiter)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+            if (session == null)
+                throw new InvalidOperationException("Chat session not found");
+
+            if (session.Recruiter.UserId != recruiterUserId)
+                throw new UnauthorizedAccessException("You do not have access to this chat session");
+
             var message = new RecruiterChatMessage
             {
                 SessionId = sessionId,
@@ -47,8 +54,18 @@ namespace RecruitAI.Application.Services
             await _context.SaveChangesAsync();
 
         }
-        public async Task<List<RecruiterChatMessage>> GetMessagesAsync(Guid sessionId)
+        public async Task<List<RecruiterChatMessage>> GetMessagesAsync(Guid recruiterUserId, Guid sessionId)
         {
+            var session = await _context.RecruiterChatSessions
+                .Include(s => s.Recruiter)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+            if (session == null)
+                throw new InvalidOperationException("Chat session not found");
+
+            if (session.Recruiter.UserId != recruiterUserId)
+                throw new UnauthorizedAccessException("You do not have access to this chat session");
+
             return await _context.RecruiterChatMessages
                 .Where(m => m.SessionId == sessionId)
                 .OrderBy(m => m.CreatedAt)
